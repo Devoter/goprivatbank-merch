@@ -6,6 +6,7 @@ ALLBIN=${NAME}
 CGO_ENABLED=0
 GOOS=
 GOARCH=
+GOARM=
 INSTALL_PREFIX=/usr/local/bin
 
 all: ${ALLBIN}
@@ -17,7 +18,7 @@ clean-${NAME}:
 	rm --force app
 
 ${NAME}:
-	CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} go build ${LDFLAGS} -o ${NAME} ./cmd/app/...
+	CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} go build ${LDFLAGS} -o ${NAME} ./cmd/app/...
 
 #generate:
 #
