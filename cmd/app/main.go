@@ -8,6 +8,7 @@ import (
 	"encoding/xml"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 )
@@ -49,7 +50,9 @@ var Version = "undefined"
 
 func main() {
 	url := flag.String("url", "", "target URL")
+	merchant := flag.String("merchant", "", "merchant id")
 	passphrase := flag.String("passphrase", "", "private key")
+	card := flag.String("card", "", "card name")
 	version := flag.Bool("version", false, "print the application version")
 	dryRun := flag.Bool("dry-run", false, "just prepare a body")
 	help := flag.Bool("help", false, "show this text")
@@ -67,14 +70,14 @@ func main() {
 	}
 
 	data := Data{
-		Oper: "cnt",
+		Oper: "cmt",
 		Wait: 0,
 		Test: 0,
 		Payment: Payment{
 			Props: []Prop{
-				{Name: "sd", Value: "11.08.2013"},
-				{Name: "ed", Value: "11.09.2013"},
-				{Name: "card", Value: "5168742060221193"},
+				// {Name: "sd", Value: "11.08.2013"},
+				// {Name: "ed", Value: "11.09.2013"},
+				{Name: "card", Value: *card},
 			},
 		},
 	}
@@ -95,7 +98,7 @@ func main() {
 	reqContent := Request{
 		Version: "1.0",
 		Merchant: Merchant{
-			ID:        "75482",
+			ID:        *merchant,
 			Signature: hex.EncodeToString(signature[:]),
 		},
 		Data: data,
@@ -117,9 +120,17 @@ func main() {
 
 	buf := bytes.NewBuffer(encoded)
 
-	_, err = http.Post(*url, "application/xml", buf)
+	response, err := http.Post(*url, "application/xml", buf)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "HTTP request failed error=%v\n", err)
 		os.Exit(3)
 	}
+
+	responseData, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "could not read a response body error=%v\n", err)
+		os.Exit(4)
+	}
+
+	fmt.Printf("\nResponse (status: %d):\n%s\n", response.StatusCode, responseData)
 }
